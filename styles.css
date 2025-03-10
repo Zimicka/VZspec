@@ -21,7 +21,7 @@ header h1 {
 .black-div {
     background-color: black; /* Černé pozadí */
     color: white; /* Bílý text */
-    padding: 20px; /* Vnitřní okraje */
+    padding: 10px; /* Vnitřní okraje */
     border-radius: 5px; /* Zaoblení rohů */
     text-align: center; /* Vycentrování textu */
 }
