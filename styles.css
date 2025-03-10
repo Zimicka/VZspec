@@ -25,3 +25,8 @@ header h1 {
     border-radius: 5px; /* Zaoblení rohů */
     text-align: center; /* Vycentrování textu */
 }
+header a {
+    text-decoration: none;
+    text-decoration-line: none;
+    color: white;
+}
