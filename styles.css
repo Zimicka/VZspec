@@ -22,7 +22,6 @@ header h1 {
     background-color: black; /* Černé pozadí */
     color: white; /* Bílý text */
     padding: 3px; /* Vnitřní okraje */
-    border-radius: 5px; /* Zaoblení rohů */
     text-align: center; /* Vycentrování textu */
 }
 header a {
