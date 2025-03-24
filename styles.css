@@ -30,11 +30,10 @@ header a {
     color: white;
 }
 .text-obr {
-    display: flex;
+    display: block;
     margin: 20px auto;
     width: 300px;
     align-content: center;
-    -ms-flex-align: center;
 }
 .text {
     background-color: rgb(170, 170, 170);
