@@ -35,3 +35,10 @@ header a {
     margin: 20px auto;
     width: 300px;
 }
+.text {
+    background-color: white;
+    color: black;
+    padding: 3px;
+    border-radius: 5px;
+    text-align: center;
+    }
