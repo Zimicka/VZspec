@@ -30,7 +30,7 @@ header a {
     text-decoration-line: none;
     color: white;
 }
-text-obr {
+.text-obr {
     display: block;
     margin: 20px auto;
     width: 300px;
