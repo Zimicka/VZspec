@@ -34,6 +34,7 @@ header a {
     display: flex;
     margin: 20px auto;
     width: 300px;
+    align-content: center;
 }
 .text {
     background-color: rgb(170, 170, 170);
