@@ -16,13 +16,13 @@ header h1 {
 .logo {
     display: block;
     margin: 20px auto;
-    width: 200px; /* Můžete upravit velikost podle potřeby */
+    width: 300px;
 }
 .black-div {
-    background-color: black; /* Černé pozadí */
-    color: white; /* Bílý text */
-    padding: 3px; /* Vnitřní okraje */
-    text-align: center; /* Vycentrování textu */
+    background-color: black;
+    color: white;
+    padding: 3px;
+    text-align: center;
 }
 header a {
     text-decoration: none;
