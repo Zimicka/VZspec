@@ -10,7 +10,7 @@
       font-family: sans-serif;
       background: #e0f7fa;
     }
-    #game, #menu, #pauseOverlay {
+    #game, #menu, #pauseOverlay, #carSelection {
       position: absolute;
       width: 100vw;
       height: 100vh;
@@ -91,6 +91,15 @@
       padding: 10px;
       border-radius: 10px;
     }
+    .car-option {
+      font-size: 32px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -118,6 +127,17 @@
     <div class="title">💀 GAME OVER</div>
     <button class="game-button" onclick="restartGame()">🔁 Restart</button>
     <button class="game-button" onclick="backToMenu()">🏠 Menu</button>
+  </div>
+
+  <div id="carSelection" class="centered" style="display:none">
+    <div class="title">🚘 Vyber Auto</div>
+    <div id="carList">
+      <div class="car-option" onclick="selectCar('🚗')">🚗 (Základní)</div>
+      <div class="car-option locked" onclick="selectCar('🚙', 20)">🚙 (Odemkne se při skóre 20+)</div>
+      <div class="car-option locked" onclick="selectCar('🚓', 50)">🚓 (Odemkne se při skóre 50+)</div>
+      <div class="car-option locked" onclick="selectCar('🚕', 100)">🚕 (Odemkne se při skóre 100+)</div>
+    </div>
+    <button class="game-button" onclick="closeCarSelection()">🔙 Zpět</button>
   </div>
 
   <!-- Audio and scripts will be included here -->
