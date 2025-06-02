@@ -39,7 +39,7 @@
     .pipe {
       position: absolute;
       width: 60px;
-      background-color: #4CAF50; /* Zelené trubky */
+      background-color: #4CAF50;
     }
     .pipe-top {
       top: 0;
@@ -76,23 +76,22 @@
       padding: 20px 40px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      text-align: center;
     }
-    #settings {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-    }
-    #settings button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
+    .game-button {
+      display: block;
+      font-size: 28px;
+      margin: 15px auto 0;
+      padding: 10px 20px;
       background: #00897b;
       color: white;
+      border: none;
+      border-radius: 12px;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-weight: bold;
     }
-    #settings button:hover {
+    .game-button:hover {
       background: #00695c;
     }
   </style>
@@ -102,10 +101,11 @@
     <div id="car">🚗<div id="carBox"></div></div>
     <div id="lives">❤️❤️❤️</div>
     <div id="score">Skóre: 0</div>
-    <div id="game-over">GAME OVER</div>
-    <div id="settings">
-      <button id="toggleSound">🔊 Zvuk: Zapnuto</button>
-      <button id="restart">🔁 Restart</button>
+    <div id="game-over">
+      GAME OVER
+      <button class="game-button" id="btnRestart">🔁 Restart</button>
+      <button class="game-button" id="btnSound">🔊 Zvuk: Zapnuto</button>
+      <button class="game-button" id="btnScore">🏆 Skóre: 0</button>
     </div>
   </div>
 
@@ -122,15 +122,15 @@
     const scoreDisplay = document.getElementById("score");
     const gameOverDisplay = document.getElementById("game-over");
 
-    const btnToggleSound = document.getElementById("toggleSound");
-    const btnRestart = document.getElementById("restart");
+    const btnRestart = document.getElementById("btnRestart");
+    const btnSound = document.getElementById("btnSound");
+    const btnScore = document.getElementById("btnScore");
 
     const soundJump = document.getElementById("soundJump");
     const soundHit = document.getElementById("soundHit");
     const soundScore = document.getElementById("soundScore");
 
     let soundOn = true;
-
     let carY = 200;
     let velocity = 0;
     const gravity = 0.5;
@@ -146,6 +146,7 @@
 
     function updateScore() {
       scoreDisplay.textContent = `Skóre: ${score}`;
+      btnScore.textContent = `🏆 Skóre: ${score}`;
     }
 
     function jump() {
@@ -250,17 +251,19 @@
       pipeInterval = setInterval(createPipe, 2000);
     }
 
-    document.addEventListener("click", () => {
-      if (lives > 0) jump();
+    // Nové: mezerník pro skok
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (lives > 0) jump();
+      }
     });
 
-    btnToggleSound.addEventListener("click", () => {
+    btnRestart.addEventListener("click", () => startGame());
+
+    btnSound.addEventListener("click", () => {
       soundOn = !soundOn;
-      btnToggleSound.textContent = soundOn ? "🔊 Zvuk: Zapnuto" : "🔇 Zvuk: Vypnuto";
-    });
-
-    btnRestart.addEventListener("click", () => {
-      startGame();
+      btnSound.textContent = soundOn ? "🔊 Zvuk: Zapnuto" : "🔇 Zvuk: Vypnuto";
     });
 
     startGame();
