@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Skákací Hra - 🚗</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: #e0f7fa;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: #b2ebf2;
+    }
+    #car {
+      position: absolute;
+      font-size: 40px;
+      left: 100px;
+      top: 200px;
+      transition: transform 0.2s;
+    }
+    .pipe {
+      position: absolute;
+      width: 60px;
+      background-color: #00796b;
+    }
+    .pipe-top {
+      top: 0;
+    }
+    .pipe-bottom {
+      bottom: 0;
+    }
+    #lives, #score {
+      position: absolute;
+      top: 10px;
+      font-size: 24px;
+    }
+    #lives {
+      left: 10px;
+      color: #d32f2f;
+    }
+    #score {
+      right: 10px;
+      color: #004d40;
+    }
+    #game-over {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      color: #d32f2f;
+      display: none;
+    }
+    #settings {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+    #settings button {
+      margin-left: 5px;
+      padding: 5px 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #00897b;
+      color: white;
+      cursor: pointer;
+    }
+    #settings button:hover {
+      background: #00695c;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="car">🚗</div>
+    <div id="lives">❤️❤️❤️</div>
+    <div id="score">Skóre: 0</div>
+    <div id="game-over">GAME OVER</div>
+    <div id="settings">
+      <button id="toggleSound">🔊 Zvuk: Zapnuto</button>
+      <button id="restart">🔁 Restart</button>
+    </div>
+  </div>
+
+  <!-- Zvukové efekty -->
+  <audio id="soundJump" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+  <audio id="soundHit" src="https://www.soundjay.com/button/beep-10.wav"></audio>
+  <audio id="soundScore" src="https://www.soundjay.com/button/beep-04.wav"></audio>
+
+  <script>
+    const car = document.getElementById("car");
+    const game = document.getElementById("game");
+    const livesDisplay = document.getElementById("lives");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("game-over");
+
+    const btnToggleSound = document.getElementById("toggleSound");
+    const btnRestart = document.getElementById("restart");
+
+    const soundJump = document.getElementById("soundJump");
+    const soundHit = document.getElementById("soundHit");
+    const soundScore = document.getElementById("soundScore");
+
+    let soundOn = true;
+
+    let carY = 200;
+    let velocity = 0;
+    const gravity = 0.5;
+    const jumpPower = -10;
+    let lives = 3;
+    let score = 0;
+    let pipes = [];
+    let gameInterval, pipeInterval;
+
+    function updateLives() {
+      livesDisplay.textContent = "❤️".repeat(lives);
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `Skóre: ${score}`;
+    }
+
+    function jump() {
+      velocity = jumpPower;
+      if (soundOn) soundJump.play();
+    }
+
+    function createPipe() {
+      const gap = 150;
+      const pipeHeight = Math.floor(Math.random() * (game.clientHeight - gap - 100)) + 50;
+
+      const pipeTop = document.createElement("div");
+      pipeTop.classList.add("pipe", "pipe-top");
+      pipeTop.style.height = pipeHeight + "px";
+      pipeTop.style.left = game.clientWidth + "px";
+
+      const pipeBottom = document.createElement("div");
+      pipeBottom.classList.add("pipe", "pipe-bottom");
+      pipeBottom.style.height = (game.clientHeight - pipeHeight - gap) + "px";
+      pipeBottom.style.left = game.clientWidth + "px";
+
+      game.appendChild(pipeTop);
+      game.appendChild(pipeBottom);
+      pipes.push({ top: pipeTop, bottom: pipeBottom, x: game.clientWidth, hit: false, scored: false });
+    }
+
+    function gameLoop() {
+      velocity += gravity;
+      carY += velocity;
+      if (carY < 0) carY = 0;
+      if (carY > game.clientHeight - 40) {
+        carY = game.clientHeight - 40;
+        velocity = 0;
+      }
+      car.style.top = carY + "px";
+
+      pipes.forEach(pipe => {
+        pipe.x -= 3;
+        pipe.top.style.left = pipe.x + "px";
+        pipe.bottom.style.left = pipe.x + "px";
+
+        if (
+          pipe.x < 140 && pipe.x + 60 > 100 &&
+          (carY < pipe.top.offsetHeight || carY + 40 > game.clientHeight - pipe.bottom.offsetHeight)
+        ) {
+          if (!pipe.hit) {
+            lives--;
+            updateLives();
+            if (soundOn) soundHit.play();
+            pipe.hit = true;
+            if (lives <= 0) {
+              gameOverDisplay.style.display = "block";
+              clearInterval(gameInterval);
+              clearInterval(pipeInterval);
+            }
+          }
+        }
+
+        if (!pipe.scored && pipe.x + 60 < 100) {
+          score++;
+          updateScore();
+          if (soundOn) soundScore.play();
+          pipe.scored = true;
+        }
+      });
+
+      pipes = pipes.filter(pipe => pipe.x > -60);
+    }
+
+    function startGame() {
+      carY = 200;
+      velocity = 0;
+      lives = 3;
+      score = 0;
+      pipes.forEach(p => {
+        p.top.remove();
+        p.bottom.remove();
+      });
+      pipes = [];
+      updateLives();
+      updateScore();
+      gameOverDisplay.style.display = "none";
+      clearInterval(gameInterval);
+      clearInterval(pipeInterval);
+      gameInterval = setInterval(gameLoop, 20);
+      pipeInterval = setInterval(createPipe, 2000);
+    }
+
+    document.addEventListener("click", () => {
+      if (lives > 0) jump();
+    });
+
+    btnToggleSound.addEventListener("click", () => {
+      soundOn = !soundOn;
+      btnToggleSound.textContent = soundOn ? "🔊 Zvuk: Zapnuto" : "🔇 Zvuk: Vypnuto";
+    });
+
+    btnRestart.addEventListener("click", () => {
+      startGame();
+    });
+
+    // Inicializace
+    startGame();
+  </script>
+</body>
+</html>
