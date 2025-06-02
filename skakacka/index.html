@@ -10,18 +10,50 @@
       font-family: sans-serif;
       background: #e0f7fa;
     }
-    #game {
-      position: relative;
+    #game, #menu, #pauseOverlay {
+      position: absolute;
       width: 100vw;
       height: 100vh;
       background-color: #e0f7fa;
+    }
+    .centered {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .title {
+      font-size: 72px;
+      color: #d32f2f;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    .game-button {
+      display: block;
+      font-size: 28px;
+      margin: 15px auto;
+      padding: 10px 20px;
+      background: #00897b;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      font-weight: bold;
+    }
+    .game-button:hover {
+      background: #00695c;
     }
     #car {
       position: absolute;
       font-size: 40px;
       left: 100px;
       top: 200px;
-      transition: transform 0.2s;
+      transform: scaleX(-1);
       width: 40px;
       height: 40px;
       display: flex;
@@ -47,13 +79,6 @@
     .pipe-bottom {
       bottom: 0;
     }
-    #lives {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
-      color: #d32f2f;
-    }
     #score {
       position: absolute;
       top: 10px;
@@ -61,212 +86,40 @@
       font-size: 32px;
       color: #d50000;
       font-weight: bold;
-    }
-    #game-over {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 72px;
-      color: #d32f2f;
-      font-weight: 900;
-      display: none;
       z-index: 1000;
       background: rgba(255, 255, 255, 0.8);
-      padding: 20px 40px;
+      padding: 10px;
       border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-      text-align: center;
-    }
-    .game-button {
-      display: block;
-      font-size: 28px;
-      margin: 15px auto 0;
-      padding: 10px 20px;
-      background: #00897b;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      font-weight: bold;
-    }
-    .game-button:hover {
-      background: #00695c;
     }
   </style>
 </head>
 <body>
-  <div id="game">
-    <div id="car">🚗<div id="carBox"></div></div>
-    <div id="lives">❤️❤️❤️</div>
-    <div id="score">Skóre: 0</div>
-    <div id="game-over">
-      GAME OVER
-      <button class="game-button" id="btnRestart">🔁 Restart</button>
-      <button class="game-button" id="btnSound">🔊 Zvuk: Zapnuto</button>
-      <button class="game-button" id="btnScore">🏆 Skóre: 0</button>
-    </div>
+  <div id="menu" class="centered">
+    <div class="title">🚗 Flappy Auto</div>
+    <button class="game-button" onclick="startGame()">▶️ Hrát</button>
+    <button class="game-button" onclick="openCarSelection()">🚘 Změnit Auto</button>
+    <div class="game-button" id="bestScore">🥇 Nejlepší skóre: 0</div>
   </div>
 
-  <!-- Zvuky -->
-  <audio id="soundJump" src="https://www.soundjay.com/button/beep-07.wav"></audio>
-  <audio id="soundHit" src="https://www.soundjay.com/button/beep-10.wav"></audio>
-  <audio id="soundScore" src="https://www.soundjay.com/button/beep-04.wav"></audio>
+  <div id="game" style="display:none">
+    <div id="car">🚗<div id="carBox"></div></div>
+    <div id="score">Skóre: 0</div>
+    <button class="game-button" style="position: absolute; bottom: 10px; left: 10px;" onclick="pauseGame()">⏸️ Pauza</button>
+  </div>
 
-  <script>
-    const car = document.getElementById("car");
-    const carBox = document.getElementById("carBox");
-    const game = document.getElementById("game");
-    const livesDisplay = document.getElementById("lives");
-    const scoreDisplay = document.getElementById("score");
-    const gameOverDisplay = document.getElementById("game-over");
+  <div id="pauseOverlay" class="centered" style="display:none">
+    <div class="title">⏸️ ZASTAVENO</div>
+    <button class="game-button" onclick="toggleSound()" id="pauseSound">🔊 Zvuk: Zapnuto</button>
+    <button class="game-button" onclick="restartGame()">🔁 Restart</button>
+    <button class="game-button" onclick="backToMenu()">🏠 Menu</button>
+  </div>
 
-    const btnRestart = document.getElementById("btnRestart");
-    const btnSound = document.getElementById("btnSound");
-    const btnScore = document.getElementById("btnScore");
+  <div id="gameOver" class="centered" style="display:none">
+    <div class="title">💀 GAME OVER</div>
+    <button class="game-button" onclick="restartGame()">🔁 Restart</button>
+    <button class="game-button" onclick="backToMenu()">🏠 Menu</button>
+  </div>
 
-    const soundJump = document.getElementById("soundJump");
-    const soundHit = document.getElementById("soundHit");
-    const soundScore = document.getElementById("soundScore");
-
-    let soundOn = true;
-    let carY = 200;
-    let velocity = 0;
-    const gravity = 0.5;
-    const jumpPower = -10;
-    let lives = 3;
-    let score = 0;
-    let pipes = [];
-    let gameInterval, pipeInterval;
-
-    function updateLives() {
-      livesDisplay.textContent = "❤️".repeat(lives);
-    }
-
-    function updateScore() {
-      scoreDisplay.textContent = `Skóre: ${score}`;
-      btnScore.textContent = `🏆 Skóre: ${score}`;
-    }
-
-    function jump() {
-      velocity = jumpPower;
-      if (soundOn) soundJump.play();
-    }
-
-    function createPipe() {
-      const gap = 150;
-      const pipeHeight = Math.floor(Math.random() * (game.clientHeight - gap - 100)) + 50;
-
-      const pipeTop = document.createElement("div");
-      pipeTop.classList.add("pipe", "pipe-top");
-      pipeTop.style.height = pipeHeight + "px";
-      pipeTop.style.left = game.clientWidth + "px";
-
-      const pipeBottom = document.createElement("div");
-      pipeBottom.classList.add("pipe", "pipe-bottom");
-      pipeBottom.style.height = (game.clientHeight - pipeHeight - gap) + "px";
-      pipeBottom.style.left = game.clientWidth + "px";
-
-      game.appendChild(pipeTop);
-      game.appendChild(pipeBottom);
-      pipes.push({ top: pipeTop, bottom: pipeBottom, x: game.clientWidth, hit: false, scored: false });
-    }
-
-    function getBoxRect(el) {
-      return el.getBoundingClientRect();
-    }
-
-    function isColliding(rect1, rect2) {
-      return !(
-        rect1.right < rect2.left ||
-        rect1.left > rect2.right ||
-        rect1.bottom < rect2.top ||
-        rect1.top > rect2.bottom
-      );
-    }
-
-    function gameLoop() {
-      velocity += gravity;
-      carY += velocity;
-      if (carY < 0) carY = 0;
-      if (carY > game.clientHeight - 40) {
-        carY = game.clientHeight - 40;
-        velocity = 0;
-      }
-      car.style.top = carY + "px";
-
-      const carRect = getBoxRect(carBox);
-
-      pipes.forEach(pipe => {
-        pipe.x -= 3;
-        pipe.top.style.left = pipe.x + "px";
-        pipe.bottom.style.left = pipe.x + "px";
-
-        const topRect = getBoxRect(pipe.top);
-        const bottomRect = getBoxRect(pipe.bottom);
-
-        if (
-          !pipe.hit &&
-          (isColliding(carRect, topRect) || isColliding(carRect, bottomRect))
-        ) {
-          lives--;
-          updateLives();
-          if (soundOn) soundHit.play();
-          pipe.hit = true;
-          if (lives <= 0) {
-            gameOverDisplay.style.display = "block";
-            clearInterval(gameInterval);
-            clearInterval(pipeInterval);
-          }
-        }
-
-        if (!pipe.scored && pipe.x + 60 < 100) {
-          score++;
-          updateScore();
-          if (soundOn) soundScore.play();
-          pipe.scored = true;
-        }
-      });
-
-      pipes = pipes.filter(pipe => pipe.x > -60);
-    }
-
-    function startGame() {
-      carY = 200;
-      velocity = 0;
-      lives = 3;
-      score = 0;
-      pipes.forEach(p => {
-        p.top.remove();
-        p.bottom.remove();
-      });
-      pipes = [];
-      updateLives();
-      updateScore();
-      gameOverDisplay.style.display = "none";
-      clearInterval(gameInterval);
-      clearInterval(pipeInterval);
-      gameInterval = setInterval(gameLoop, 20);
-      pipeInterval = setInterval(createPipe, 2000);
-    }
-
-    // Nové: mezerník pro skok
-    document.addEventListener("keydown", (e) => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        if (lives > 0) jump();
-      }
-    });
-
-    btnRestart.addEventListener("click", () => startGame());
-
-    btnSound.addEventListener("click", () => {
-      soundOn = !soundOn;
-      btnSound.textContent = soundOn ? "🔊 Zvuk: Zapnuto" : "🔇 Zvuk: Vypnuto";
-    });
-
-    startGame();
-  </script>
+  <!-- Audio and scripts will be included here -->
 </body>
 </html>
