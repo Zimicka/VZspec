@@ -14,7 +14,7 @@
       position: relative;
       width: 100vw;
       height: 100vh;
-      background-color: #b2ebf2;
+      background-color: #e0f7fa;
     }
     #car {
       position: absolute;
@@ -22,11 +22,24 @@
       left: 100px;
       top: 200px;
       transition: transform 0.2s;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #carBox {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      left: 5px;
+      top: 5px;
     }
     .pipe {
       position: absolute;
       width: 60px;
-      background-color: #00796b;
+      background-color: #4CAF50; /* Zelené trubky */
     }
     .pipe-top {
       top: 0;
@@ -34,27 +47,35 @@
     .pipe-bottom {
       bottom: 0;
     }
-    #lives, #score {
+    #lives {
       position: absolute;
       top: 10px;
-      font-size: 24px;
-    }
-    #lives {
       left: 10px;
+      font-size: 24px;
       color: #d32f2f;
     }
     #score {
+      position: absolute;
+      top: 10px;
       right: 10px;
-      color: #004d40;
+      font-size: 32px;
+      color: #d50000;
+      font-weight: bold;
     }
     #game-over {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 48px;
+      font-size: 72px;
       color: #d32f2f;
+      font-weight: 900;
       display: none;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
     #settings {
       position: absolute;
@@ -78,7 +99,7 @@
 </head>
 <body>
   <div id="game">
-    <div id="car">🚗</div>
+    <div id="car">🚗<div id="carBox"></div></div>
     <div id="lives">❤️❤️❤️</div>
     <div id="score">Skóre: 0</div>
     <div id="game-over">GAME OVER</div>
@@ -88,13 +109,14 @@
     </div>
   </div>
 
-  <!-- Zvukové efekty -->
+  <!-- Zvuky -->
   <audio id="soundJump" src="https://www.soundjay.com/button/beep-07.wav"></audio>
   <audio id="soundHit" src="https://www.soundjay.com/button/beep-10.wav"></audio>
   <audio id="soundScore" src="https://www.soundjay.com/button/beep-04.wav"></audio>
 
   <script>
     const car = document.getElementById("car");
+    const carBox = document.getElementById("carBox");
     const game = document.getElementById("game");
     const livesDisplay = document.getElementById("lives");
     const scoreDisplay = document.getElementById("score");
@@ -150,6 +172,19 @@
       pipes.push({ top: pipeTop, bottom: pipeBottom, x: game.clientWidth, hit: false, scored: false });
     }
 
+    function getBoxRect(el) {
+      return el.getBoundingClientRect();
+    }
+
+    function isColliding(rect1, rect2) {
+      return !(
+        rect1.right < rect2.left ||
+        rect1.left > rect2.right ||
+        rect1.bottom < rect2.top ||
+        rect1.top > rect2.bottom
+      );
+    }
+
     function gameLoop() {
       velocity += gravity;
       carY += velocity;
@@ -160,25 +195,28 @@
       }
       car.style.top = carY + "px";
 
+      const carRect = getBoxRect(carBox);
+
       pipes.forEach(pipe => {
         pipe.x -= 3;
         pipe.top.style.left = pipe.x + "px";
         pipe.bottom.style.left = pipe.x + "px";
 
+        const topRect = getBoxRect(pipe.top);
+        const bottomRect = getBoxRect(pipe.bottom);
+
         if (
-          pipe.x < 140 && pipe.x + 60 > 100 &&
-          (carY < pipe.top.offsetHeight || carY + 40 > game.clientHeight - pipe.bottom.offsetHeight)
+          !pipe.hit &&
+          (isColliding(carRect, topRect) || isColliding(carRect, bottomRect))
         ) {
-          if (!pipe.hit) {
-            lives--;
-            updateLives();
-            if (soundOn) soundHit.play();
-            pipe.hit = true;
-            if (lives <= 0) {
-              gameOverDisplay.style.display = "block";
-              clearInterval(gameInterval);
-              clearInterval(pipeInterval);
-            }
+          lives--;
+          updateLives();
+          if (soundOn) soundHit.play();
+          pipe.hit = true;
+          if (lives <= 0) {
+            gameOverDisplay.style.display = "block";
+            clearInterval(gameInterval);
+            clearInterval(pipeInterval);
           }
         }
 
@@ -225,7 +263,6 @@
       startGame();
     });
 
-    // Inicializace
     startGame();
   </script>
 </body>
