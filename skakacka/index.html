@@ -10,7 +10,7 @@
       font-family: sans-serif;
       background: #e0f7fa;
     }
-    #game, #menu, #pauseOverlay, #carSelection {
+    #game, #menu, #pauseOverlay, #carSelection, #gameOver {
       position: absolute;
       width: 100vw;
       height: 100vh;
@@ -141,11 +141,29 @@
   </div>
 
   <script>
+    let gameStarted = false;
+
     function startGame() {
       document.getElementById('menu').style.display = 'none';
+      document.getElementById('carSelection').style.display = 'none';
+      document.getElementById('gameOver').style.display = 'none';
+      document.getElementById('pauseOverlay').style.display = 'none';
       document.getElementById('game').style.display = 'block';
-      // Spuštění hlavní logiky hry by mělo být zde
-      console.log("Hra spuštěna");
+      gameStarted = true;
+      runGame();
+    }
+
+    function runGame() {
+      // Placeholder funkce pro test, skutečná herní logika se připojí zde
+      document.addEventListener('keydown', function jump(e) {
+        if (e.code === 'Space') {
+          const car = document.getElementById('car');
+          let top = parseInt(car.style.top) || 200;
+          top -= 50;
+          car.style.top = Math.max(0, top) + 'px';
+        }
+      });
+      // Další logiku doplníme podle původního funkčního kódu hry
     }
 
     function openCarSelection() {
@@ -166,6 +184,34 @@
       } else {
         alert(`Toto auto je zamčeno. Získej skóre alespoň ${requiredScore}.`);
       }
+    }
+
+    function pauseGame() {
+      document.getElementById('pauseOverlay').style.display = 'block';
+      gameStarted = false;
+    }
+
+    function restartGame() {
+      location.reload();
+    }
+
+    function backToMenu() {
+      location.reload();
+    }
+
+    function toggleSound() {
+      const btn = document.getElementById('pauseSound');
+      if (btn.innerText.includes('Zapnuto')) {
+        btn.innerText = '🔇 Zvuk: Vypnuto';
+      } else {
+        btn.innerText = '🔊 Zvuk: Zapnuto';
+      }
+    }
+
+    // Načti nejlepší skóre z localStorage
+    window.onload = function() {
+      const best = parseInt(localStorage.getItem('bestScore')) || 0;
+      document.getElementById('bestScore').innerText = '🥇 Nejlepší skóre: ' + best;
     }
   </script>
 </body>
