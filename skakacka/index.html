@@ -141,7 +141,12 @@
   </div>
 
   <script>
-    let gameStarted = false;
+    let car, carBox, scoreDisplay, gameInterval, gravityInterval;
+    let velocity = 0;
+    let gravity = 2;
+    let pipes = [];
+    let score = 0;
+    let gameRunning = false;
 
     function startGame() {
       document.getElementById('menu').style.display = 'none';
@@ -149,21 +154,99 @@
       document.getElementById('gameOver').style.display = 'none';
       document.getElementById('pauseOverlay').style.display = 'none';
       document.getElementById('game').style.display = 'block';
-      gameStarted = true;
-      runGame();
+
+      car = document.getElementById('car');
+      carBox = document.getElementById('carBox');
+      scoreDisplay = document.getElementById('score');
+      document.addEventListener('keydown', jump);
+      pipes.forEach(p => p.remove());
+      pipes = [];
+      score = 0;
+      updateScore();
+      car.style.top = '200px';
+
+      gameRunning = true;
+      gravityInterval = setInterval(applyGravity, 30);
+      gameInterval = setInterval(spawnPipe, 2000);
     }
 
-    function runGame() {
-      // Placeholder funkce pro test, skutečná herní logika se připojí zde
-      document.addEventListener('keydown', function jump(e) {
-        if (e.code === 'Space') {
-          const car = document.getElementById('car');
-          let top = parseInt(car.style.top) || 200;
-          top -= 50;
-          car.style.top = Math.max(0, top) + 'px';
+    function jump(e) {
+      if (e.code === 'Space') {
+        velocity = -15;
+      }
+    }
+
+    function applyGravity() {
+      if (!gameRunning) return;
+      let top = parseInt(car.style.top);
+      velocity += gravity;
+      top += velocity;
+      car.style.top = Math.max(0, Math.min(window.innerHeight - 40, top)) + 'px';
+
+      pipes.forEach(pipe => {
+        let left = parseInt(pipe.style.left);
+        left -= 5;
+        pipe.style.left = left + 'px';
+
+        if (left + 60 < 100 && !pipe.passed && pipe.classList.contains('pipe-top')) {
+          score++;
+          updateScore();
+          pipe.passed = true;
+        }
+
+        if (isColliding(carBox, pipe)) {
+          endGame();
         }
       });
-      // Další logiku doplníme podle původního funkčního kódu hry
+
+      pipes = pipes.filter(pipe => parseInt(pipe.style.left) > -60);
+    }
+
+    function spawnPipe() {
+      const gap = 150;
+      const height = Math.floor(Math.random() * (window.innerHeight - gap - 200)) + 100;
+
+      const topPipe = document.createElement('div');
+      topPipe.className = 'pipe pipe-top';
+      topPipe.style.height = height + 'px';
+      topPipe.style.left = window.innerWidth + 'px';
+      document.body.appendChild(topPipe);
+
+      const bottomPipe = document.createElement('div');
+      bottomPipe.className = 'pipe pipe-bottom';
+      bottomPipe.style.height = (window.innerHeight - height - gap) + 'px';
+      bottomPipe.style.left = window.innerWidth + 'px';
+      document.body.appendChild(bottomPipe);
+
+      pipes.push(topPipe, bottomPipe);
+    }
+
+    function isColliding(a, b) {
+      const aRect = a.getBoundingClientRect();
+      const bRect = b.getBoundingClientRect();
+      return !(
+        aRect.bottom < bRect.top ||
+        aRect.top > bRect.bottom ||
+        aRect.right < bRect.left ||
+        aRect.left > bRect.right
+      );
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(gravityInterval);
+      clearInterval(gameInterval);
+      document.removeEventListener('keydown', jump);
+      document.getElementById('gameOver').style.display = 'block';
+
+      const best = parseInt(localStorage.getItem('bestScore')) || 0;
+      if (score > best) {
+        localStorage.setItem('bestScore', score);
+      }
+    }
+
+    function updateScore() {
+      scoreDisplay.innerText = 'Skóre: ' + score;
     }
 
     function openCarSelection() {
@@ -188,7 +271,7 @@
 
     function pauseGame() {
       document.getElementById('pauseOverlay').style.display = 'block';
-      gameStarted = false;
+      gameRunning = false;
     }
 
     function restartGame() {
@@ -208,7 +291,6 @@
       }
     }
 
-    // Načti nejlepší skóre z localStorage
     window.onload = function() {
       const best = parseInt(localStorage.getItem('bestScore')) || 0;
       document.getElementById('bestScore').innerText = '🥇 Nejlepší skóre: ' + best;
