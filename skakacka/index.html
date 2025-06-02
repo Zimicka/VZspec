@@ -140,6 +140,33 @@
     <button class="game-button" onclick="closeCarSelection()">🔙 Zpět</button>
   </div>
 
-  <!-- Audio and scripts will be included here -->
+  <script>
+    function startGame() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      // Spuštění hlavní logiky hry by mělo být zde
+      console.log("Hra spuštěna");
+    }
+
+    function openCarSelection() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('carSelection').style.display = 'block';
+    }
+
+    function closeCarSelection() {
+      document.getElementById('carSelection').style.display = 'none';
+      document.getElementById('menu').style.display = 'block';
+    }
+
+    function selectCar(carEmoji, requiredScore = 0) {
+      const best = parseInt(localStorage.getItem('bestScore')) || 0;
+      if (best >= requiredScore) {
+        document.getElementById('car').innerHTML = carEmoji + '<div id="carBox"></div>';
+        closeCarSelection();
+      } else {
+        alert(`Toto auto je zamčeno. Získej skóre alespoň ${requiredScore}.`);
+      }
+    }
+  </script>
 </body>
 </html>
